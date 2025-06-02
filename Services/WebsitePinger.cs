@@ -7,17 +7,20 @@ public class WebsitePinger
 {
     private readonly HttpClient _httpClient;
     private readonly ExcelLogger _logger;
+    private readonly int _batchSize;
+    private readonly int _pingPeriod;
 
-    public WebsitePinger(HttpClient httpClient, ExcelLogger logger)
+    public WebsitePinger(HttpClient httpClient, ExcelLogger logger, int batchSize, int pingPeriod)
     {
         _httpClient = httpClient;
         _logger = logger;
+        _batchSize = batchSize;
+        _pingPeriod = pingPeriod;
     }
 
     public async Task PingWebsitesAsync(string[] urls)
     {
         var logQueue = new ConcurrentQueue<LogEntry>();
-        int batchSize = 100;
 
         var pingTasks = urls.Select(url => Task.Run(async () =>
         {
@@ -41,13 +44,13 @@ public class WebsitePinger
                     logQueue.Enqueue(new LogEntry(url, timestamp, $"Error - {ex.Message}"));
                 }
 
-                if (requestCount % batchSize == 0)
+                if (requestCount % _batchSize == 0)
                 {
                     _logger.LogBatch(logQueue);
                 }
 
-                // Delay between requests for each site
-                await Task.Delay(1000);
+                // Wait for the ping period (default: 1 minute)
+                await Task.Delay(_pingPeriod * 1000);
             }
         }));
 
