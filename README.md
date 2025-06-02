@@ -23,7 +23,7 @@ A .NET console application to monitor website availability by sending HTTP reque
 ### Steps to Run
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/website-pinger.git
+   git clone https://github.com/AnaDvali-epam/website-pinger.git
    cd website-pinger
 2. Build and Run the project
 3. The application will start pinging websites specified in the appsettings.json file.
