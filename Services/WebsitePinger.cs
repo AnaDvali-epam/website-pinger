@@ -9,6 +9,7 @@ public class WebsitePinger
     private readonly ExcelLogger _logger;
     private readonly int _batchSize;
     private readonly int _pingPeriod;
+    private int _totalPings;
 
     public WebsitePinger(HttpClient httpClient, ExcelLogger logger, int batchSize, int pingPeriod)
     {
@@ -16,6 +17,7 @@ public class WebsitePinger
         _logger = logger;
         _batchSize = batchSize;
         _pingPeriod = pingPeriod;
+        _totalPings = 0;
     }
 
     public async Task PingWebsitesAsync(string[] urls)
@@ -35,18 +37,21 @@ public class WebsitePinger
                     int statusCode = (int)response.StatusCode;
 
                     Console.WriteLine($"[{timestamp}] {url} - Ping #{++requestCount}: {statusCode}");
-                    logQueue.Enqueue(new LogEntry(url, timestamp, statusCode.ToString()));
+                    _logger.LogRow(url, timestamp, statusCode.ToString()); 
                 }
                 catch (Exception ex)
                 {
                     var timestamp = DateTime.UtcNow;
                     Console.WriteLine($"[{timestamp}] {url} - Ping #{++requestCount}: Error - {ex.Message}");
-                    logQueue.Enqueue(new LogEntry(url, timestamp, $"Error - {ex.Message}"));
+                    _logger.LogRow(url, timestamp, $"Error - {ex.Message}");
                 }
 
-                if (requestCount % _batchSize == 0)
+                Interlocked.Increment(ref _totalPings);
+
+                if (_totalPings >= _batchSize)
                 {
-                    _logger.LogBatch(logQueue);
+                    Console.WriteLine("Batch size reached. Exiting program...");
+                    Environment.Exit(0); 
                 }
 
                 // Wait for the ping period (default: 1 minute)

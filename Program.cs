@@ -24,5 +24,3 @@ var logger = ExcelLogger.Instance;
 
 var pinger = new WebsitePinger(httpClient, logger, batchSize, pingPeriod);
 await pinger.PingWebsitesAsync(urls);
-
-Console.WriteLine("Pinging completed! Check the generated Excel file for results.");
